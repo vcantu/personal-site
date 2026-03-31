@@ -233,8 +233,9 @@ function renderInlineMarkdown(text: string): React.ReactNode[] {
   while (remaining.length > 0) {
     // Bold
     const boldMatch = remaining.match(/\*\*(.*?)\*\*/);
-    // Italic (single * around text, not bold **)
-    const italicMatch = remaining.match(/(?:^|[^*])\*([^*]+)\*(?:[^*]|$)/);
+    // Italic (single * around text, not bold **) - use lookbehind/ahead
+    const italicMatch = remaining.match(/(?<!\*)\*([^*]+)\*(?!\*)/);
+
     // Inline code
     const codeMatch = remaining.match(/`([^`]+)`/);
 
