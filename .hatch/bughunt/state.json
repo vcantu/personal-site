@@ -1,0 +1,269 @@
+{
+  "confirmations_required": 2,
+  "refutations_required": 2,
+  "bugs": {
+    "bug_001": {
+      "id": "bug_001",
+      "name": "Timezone bug: blog post dates display one day early for US users",
+      "description": "The seed script creates the blog post date as `new Date(\"2026-03-15\")` which produces `2026-03-15T00:00:00.000Z` (UTC midnight). When Hono serializes this via `c.json()`, it becomes the ISO string `\"2026-03-15T00:00:00.000Z\"`. On the frontend, all three `formatDate` functions (in BlogPage.tsx, BlogPostPage.tsx, and WritingPreview.tsx) create `new Date(dateStr)` and call `toLocaleDateString('en-US', ...)`. For users in any US timezone (UTC-4 to UTC-10), UTC midnight converts to the previous day's evening \u2014 e.g., in EST it becomes March 14 at 7:00 PM. So `toLocaleDateString` displays \"March 14, 2026\" instead of \"March 15, 2026\". This affects the majority of the target audience. The fix would be to either: (a) use `timeZone: 'UTC'` in the `toLocaleDateString` options, or (b) parse the date string and extract year/month/day components directly without timezone conversion.",
+      "file_path": "project/frontend/src/pages/BlogPostPage.tsx",
+      "start_line": 307,
+      "end_line": 314,
+      "submitted_by": "bughunt_finder_1",
+      "status": "confirmed",
+      "confirmations": 2,
+      "refutations": 0,
+      "verifications": [
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. The seed script creates `new Date(\"2026-03-15\")` which is UTC midnight. All three `formatDate` functions (BlogPostPage.tsx:307, BlogPage.tsx:115, WritingPreview.tsx:94) use `new Date(dateStr).toLocaleDateString('en-US', ...)` without specifying `timeZone: 'UTC'`. For any user west of UTC, the date will display as one day earlier (e.g., \"March 14, 2026\" instead of \"March 15, 2026\"). This is a real and impactful bug.",
+          "agent_id": "bughunt_verifier_0",
+          "timestamp": 1774964993.6721852
+        },
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. The seed script creates dates with `new Date(\"2026-03-15\")` (UTC midnight). All three `formatDate` functions in BlogPostPage.tsx, BlogPage.tsx, and WritingPreview.tsx call `toLocaleDateString('en-US', { month, day, year })` without specifying `timeZone: 'UTC'`. No `timeZone` option exists anywhere in the frontend. For users in US timezones (UTC-4 to UTC-10), UTC midnight converts to the previous evening, causing the date to display one day early (e.g., \"March 14\" instead of \"March 15\").",
+          "agent_id": "bughunt_verifier_1",
+          "timestamp": 1774965095.878073
+        }
+      ],
+      "verified_by": [
+        "bughunt_verifier_0",
+        "bughunt_verifier_1"
+      ],
+      "inflight_count": 0,
+      "created_at": 1774964420.8712041
+    },
+    "bug_002": {
+      "id": "bug_002",
+      "name": "MarkdownRenderer silently drops content after unclosed code block",
+      "description": "In the `MarkdownRenderer` component in BlogPostPage.tsx, if the markdown content contains an opening code fence (```) without a matching closing fence, all lines after the opening fence are accumulated in the `codeBlock` array but never rendered. The while loop (lines 111-223) checks `if (line.startsWith('```'))` and toggles between collecting mode and rendering mode. If the loop exits while `codeBlock !== null` (i.e., we're still in collecting mode), the collected lines are silently dropped \u2014 there's no finalization step after the loop to flush any pending code block. While the current seed data has properly closed code blocks, any future blog post with a malformed or unclosed code fence would lose all content after the opening ```. The fix is to add a check after the while loop: if `codeBlock !== null`, push the accumulated code as a final `<pre>` element to `elements`.",
+      "file_path": "project/frontend/src/pages/BlogPostPage.tsx",
+      "start_line": 111,
+      "end_line": 225,
+      "submitted_by": "bughunt_finder_1",
+      "status": "confirmed",
+      "confirmations": 2,
+      "refutations": 0,
+      "verifications": [
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. The while loop (lines 111-223) collects lines into `codeBlock` when inside a code fence, but after the loop exits there is no check for `codeBlock !== null`. If the markdown contains an opening ``` without a closing ```, all content accumulated in `codeBlock` is silently discarded. The fix would be to add a flush after the loop. While current seed data has properly closed blocks, this is a real code defect that would silently lose content for any malformed markdown.",
+          "agent_id": "bughunt_verifier_0",
+          "timestamp": 1774965004.57341
+        },
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. The while loop (lines 111-223) accumulates lines into `codeBlock` when inside a code fence, but after the loop exits on line 223, there is no finalization step to flush a pending `codeBlock`. If the markdown has an unclosed code fence, all content after it is silently dropped. While the current seed data has properly closed fences, this is a genuine code defect in the MarkdownRenderer - any future blog content with an unclosed fence would lose content with no error indication.",
+          "agent_id": "bughunt_verifier_1",
+          "timestamp": 1774965115.571881
+        }
+      ],
+      "verified_by": [
+        "bughunt_verifier_0",
+        "bughunt_verifier_1"
+      ],
+      "inflight_count": 0,
+      "created_at": 1774964426.542423
+    },
+    "bug_003": {
+      "id": "bug_003",
+      "name": "Footer mailto link opens blank tab due to target=\"_blank\"",
+      "description": "In Layout.tsx, the `FooterPill` component unconditionally applies `target=\"_blank\"` and `rel=\"noopener noreferrer\"` to all links (line 120-121). This is correct for the external social links (X/Twitter, LinkedIn, GitHub), but the Email pill (lines 79-83) uses `href=\"mailto:viviano@cantu.info\"`. Applying `target=\"_blank\"` to a `mailto:` link causes many browsers (especially Chrome and Firefox) to open both the mail client AND a new blank tab that the user must manually close. This is a UX annoyance for every visitor who clicks the email button. The fix is to either conditionally skip `target=\"_blank\"` for mailto links, or restructure FooterPill to accept an optional `external` prop.",
+      "file_path": "project/frontend/src/components/Layout.tsx",
+      "start_line": 108,
+      "end_line": 128,
+      "submitted_by": "bughunt_finder_1",
+      "status": "confirmed",
+      "confirmations": 2,
+      "refutations": 0,
+      "verifications": [
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. The FooterPill component (lines 108-128) unconditionally applies `target=\"_blank\"` to all links. The Email pill at line 79-83 uses `href=\"mailto:viviano@cantu.info\"`. In Chrome and Firefox, `target=\"_blank\"` on a mailto: link causes both the mail client to open AND a new blank tab. This is a real UX annoyance that affects every visitor clicking the email button.",
+          "agent_id": "bughunt_verifier_0",
+          "timestamp": 1774965010.170273
+        },
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. The FooterPill component unconditionally applies `target=\"_blank\"` (line 120) to all links, including the mailto link on line 80. In Chrome and Firefox, `target=\"_blank\"` on a `mailto:` link causes the browser to open both the mail client and an unwanted blank tab. This is a well-documented browser behavior and a genuine UX bug.",
+          "agent_id": "bughunt_verifier_1",
+          "timestamp": 1774965120.8625972
+        }
+      ],
+      "verified_by": [
+        "bughunt_verifier_0",
+        "bughunt_verifier_1"
+      ],
+      "inflight_count": 0,
+      "created_at": 1774964431.514842
+    },
+    "bug_004": {
+      "id": "bug_004",
+      "name": "BlogPage and WritingPreview crash on API error responses (missing r.ok check)",
+      "description": "Both BlogPage and WritingPreview fetch from `/api/blog` without checking `response.ok` before calling `r.json()`. If the backend returns a non-200 response (e.g., 500 due to database error), `r.json()` still succeeds parsing the error JSON body like `{\"error\": \"Internal Server Error\"}`. This object is then passed to `setPosts(data)`, setting state to a non-array value.\n\nOn re-render, `posts.length === 0` evaluates as `undefined === 0` \u2192 false, so the code falls through to `posts.map()` which throws `TypeError: posts.map is not a function`, crashing the component with an unrecoverable React error.\n\nCompare with BlogPostPage (line 25-26) which correctly checks `if (!r.ok) throw new Error('Not found')` before parsing JSON.\n\nTrigger scenario: Database unavailable, migration not yet run, or any backend error \u2192 500 response \u2192 frontend crash instead of graceful empty/error state.\n\nFix: Add `if (!r.ok) throw new Error(...)` before `r.json()` in both components, similar to BlogPostPage.",
+      "file_path": "project/frontend/src/pages/BlogPage.tsx",
+      "start_line": 21,
+      "end_line": 28,
+      "submitted_by": "bughunt_finder_0",
+      "status": "confirmed",
+      "confirmations": 2,
+      "refutations": 0,
+      "verifications": [
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. Both BlogPage (line 21-28) and WritingPreview (line 21-28) call `r.json()` without checking `r.ok` first. If the backend returns a non-200 response (e.g., 500 error JSON like `{\"error\":\"...\"`}), `setPosts(data)` sets state to a non-array object. On re-render, `posts.length === 0` is `undefined === 0` \u2192 false, falling through to `posts.map()` which throws `TypeError: posts.map is not a function`. BlogPostPage correctly checks `if (!r.ok) throw new Error('Not found')` at line 26, proving this pattern was intended but missed in the other two components.",
+          "agent_id": "bughunt_verifier_0",
+          "timestamp": 1774965023.459475
+        },
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. BlogPage.tsx (line 21-22) and WritingPreview.tsx (line 21-22) both call `r.json()` without checking `r.ok` first. On a non-200 response, the error JSON object (e.g., `{\"error\":\"Internal Server Error\"}`) gets set as `posts`. Then `posts.map()` crashes with TypeError. WritingPreview additionally calls `data.slice(0, 3)` which also fails on non-array. BlogPostPage.tsx correctly checks `if (!r.ok) throw new Error('Not found')` on line 26, proving the pattern is known but inconsistently applied.",
+          "agent_id": "bughunt_verifier_1",
+          "timestamp": 1774965133.822144
+        }
+      ],
+      "verified_by": [
+        "bughunt_verifier_0",
+        "bughunt_verifier_1"
+      ],
+      "inflight_count": 0,
+      "created_at": 1774964448.802774
+    },
+    "bug_005": {
+      "id": "bug_005",
+      "name": "MarkdownRenderer doesn't handle markdown links - [text](url) renders as raw text",
+      "description": "The `renderInlineMarkdown` function in BlogPostPage handles bold (`**text**`), italic (`*text*`), and inline code (`` `text` ``), but completely lacks support for markdown links (`[text](url)`). Any blog post containing a link like `[my tool](https://github.com/...)` will display the raw markdown syntax to the user instead of rendering a clickable hyperlink.\n\nThis is a functional gap for a blog rendering engine. The spec explicitly says \"Blog posts written in MDX or Markdown\" and the blog post content references an open-source tool (\"The loop runner is open-source\") which would naturally link to its URL. Future blog posts will almost certainly need links.\n\nThe `renderInlineMarkdown` function processes bold, italic, and code by finding the earliest match and processing it. A link regex like `/\\[([^\\]]+)\\]\\(([^)]+)\\)/` needs to be added to the match candidates alongside bold, italic, and code.",
+      "file_path": "project/frontend/src/pages/BlogPostPage.tsx",
+      "start_line": 228,
+      "end_line": 304,
+      "submitted_by": "bughunt_finder_0",
+      "status": "refuted",
+      "confirmations": 0,
+      "refutations": 2,
+      "verifications": [
+        {
+          "verdict": "REFUTED",
+          "reasoning": "Refuted. The current blog content (seed data) contains no markdown links `[text](url)` - confirmed by grepping the seed file. The markdown renderer is a purpose-built simple renderer that supports the features actually used in the content (bold, italic, inline code, code blocks, headers, ordered lists). The bug report's argument is speculative (\"future blog posts will almost certainly need links\"). A missing feature for content that doesn't exist is a feature request, not a bug. The renderer correctly handles all markdown syntax present in the actual content.",
+          "agent_id": "bughunt_verifier_0",
+          "timestamp": 1774965035.7788842
+        },
+        {
+          "verdict": "REFUTED",
+          "reasoning": "Refuted. The current blog content (seed data) contains no markdown links `[text](url)` - verified by grepping the seed file. The MarkdownRenderer handles all inline formatting actually used (bold, italic, inline code). This is a missing feature for hypothetical future content, not a bug in the current application. The renderer correctly renders all content it's given today.",
+          "agent_id": "bughunt_verifier_1",
+          "timestamp": 1774965144.2641358
+        }
+      ],
+      "verified_by": [
+        "bughunt_verifier_0",
+        "bughunt_verifier_1"
+      ],
+      "inflight_count": 0,
+      "created_at": 1774964456.020591
+    },
+    "bug_006": {
+      "id": "bug_006",
+      "name": "Header text not processed through renderInlineMarkdown - inline formatting lost in headings",
+      "description": "In the MarkdownRenderer, H2 and H3 headers render their content as plain text via `line.slice(3)` and `line.slice(4)` respectively (lines 147 and 161), without passing through `renderInlineMarkdown()`. This means any inline markdown formatting within headers \u2014 bold, italic, inline code, etc. \u2014 will display as raw markdown syntax.\n\nFor example, a header like `## The `lazyOnload` Strategy` would render showing literal backtick characters instead of formatted inline code. While the current seed blog post's headers don't contain inline formatting, this is a common markdown pattern that will break for future posts.\n\nRegular paragraphs correctly call `renderInlineMarkdown(line)` at line 219, but headers skip this processing entirely.",
+      "file_path": "project/frontend/src/pages/BlogPostPage.tsx",
+      "start_line": 141,
+      "end_line": 165,
+      "submitted_by": "bughunt_finder_0",
+      "status": "refuted",
+      "confirmations": 0,
+      "refutations": 2,
+      "verifications": [
+        {
+          "verdict": "REFUTED",
+          "reasoning": "Refuted. Same reasoning as bug_005: the current blog content has no inline formatting (bold, italic, code) inside headers. The markdown renderer is a simple purpose-built renderer for the actual content. Not processing inline markdown in headers is not a bug when no headers contain inline formatting. This is a speculative feature gap, not a real bug affecting the application.",
+          "agent_id": "bughunt_verifier_0",
+          "timestamp": 1774965045.8042681
+        },
+        {
+          "verdict": "REFUTED",
+          "reasoning": "Refuted. The current blog content headers contain no inline markdown formatting (no bold, italic, or code within headers). The MarkdownRenderer correctly renders all content as currently authored. This is a missing feature for hypothetical future content, not a bug affecting the current application.",
+          "agent_id": "bughunt_verifier_1",
+          "timestamp": 1774965153.381568
+        }
+      ],
+      "verified_by": [
+        "bughunt_verifier_0",
+        "bughunt_verifier_1"
+      ],
+      "inflight_count": 0,
+      "created_at": 1774964461.5126112
+    },
+    "bug_007": {
+      "id": "bug_007",
+      "name": "MarkdownRenderer fails to render inline code nested inside bold text \u2014 backticks shown literally in blog post",
+      "description": "The `renderInlineMarkdown` function in BlogPostPage.tsx processes bold, italic, and inline code as mutually exclusive, non-nested matches. It finds the earliest match among the three patterns and renders it, but does NOT recursively process the captured content for other inline formatting.\n\nThis is triggered by the actual blog post content in seed.ts line 18:\n`**moving Google Tag Manager and Ahrefs analytics scripts to \\`lazyOnload\\`**`\n\nThe markdown content is: `**moving ... to `lazyOnload`**` \u2014 bold wrapping text that contains inline code backticks.\n\nThe bold regex `\\*\\*(.*?)\\*\\*` matches first (index earlier than the backtick), capturing `moving ... to `lazyOnload``. This captured text is rendered as a plain string inside `<strong>` (line 249-251):\n```jsx\n<strong>{boldMatch[1]}</strong>\n```\n\nSince `boldMatch[1]` is a raw string, the backticks around `lazyOnload` appear literally in the rendered output instead of being styled as an inline `<code>` element. The user sees: **moving ... to `lazyOnload`** (with visible backtick characters) instead of properly formatted inline code within bold text.\n\nFix: After matching bold/italic, recursively call `renderInlineMarkdown` on the captured content instead of rendering it as a plain string.",
+      "file_path": "project/frontend/src/pages/BlogPostPage.tsx",
+      "start_line": 244,
+      "end_line": 252,
+      "submitted_by": "bughunt_finder_1",
+      "status": "confirmed",
+      "confirmations": 2,
+      "refutations": 0,
+      "verifications": [
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. The seed data at line 18 contains `**moving Google Tag Manager and Ahrefs analytics scripts to \\`lazyOnload\\`**` \u2014 bold text wrapping inline code backticks. The bold regex `\\*\\*(.*?)\\*\\*` captures the inner content including the backticks, and renders it as a plain string `{boldMatch[1]}` inside `<strong>`. The backticks around `lazyOnload` will display literally in the browser instead of being rendered as `<code>`. This affects the actual blog post content, not just hypothetical future content.",
+          "agent_id": "bughunt_verifier_0",
+          "timestamp": 1774965056.51245
+        },
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. The seed data (line 18) contains `**moving Google Tag Manager and Ahrefs analytics scripts to \\`lazyOnload\\`**` - bold text wrapping inline code. The bold regex `\\*\\*(.*?)\\*\\*` matches first and captures the inner text including backticks as a plain string. Since `boldMatch[1]` is rendered directly inside `<strong>` without recursive processing, the backticks around `lazyOnload` appear as literal characters in the rendered output. This is a real bug affecting actual blog content.",
+          "agent_id": "bughunt_verifier_1",
+          "timestamp": 1774965165.999254
+        }
+      ],
+      "verified_by": [
+        "bughunt_verifier_0",
+        "bughunt_verifier_1"
+      ],
+      "inflight_count": 0,
+      "created_at": 1774964562.2125041
+    },
+    "bug_008": {
+      "id": "bug_008",
+      "name": "WorkAccordion data-testid regex inconsistency for \"Axon / TASER\" \u2014 slash not normalized in outer div",
+      "description": "In WorkAccordion.tsx, the data-testid for the outer container div (line 60) uses a different regex than the toggle button (line 65):\n\n- Line 60: `item.company.toLowerCase().replace(/\\s+/g, '-')` \u2014 only replaces whitespace\n- Line 65: `item.company.toLowerCase().replace(/[\\s/]+/g, '-')` \u2014 replaces whitespace AND slashes\n\nFor \"Axon / TASER\", this produces:\n- Outer div: `work-item-axon-/-taser` (slash preserved \u2014 invalid for CSS selectors)\n- Button: `work-toggle-axon-taser` (slash replaced with hyphen)\n\nThe outer div's data-testid contains a literal `/` which makes it impossible to select with standard CSS selector syntax (`[data-testid=\"work-item-axon-/-taser\"]` is problematic). Any e2e tests using `getByTestId('work-item-axon-/-taser')` or CSS attribute selectors will have issues with the forward slash. The button correctly normalizes the slash, but the container div does not.\n\nFix: Use the same regex `/[\\s/]+/g` on line 60 to match line 65.",
+      "file_path": "project/frontend/src/components/WorkAccordion.tsx",
+      "start_line": 60,
+      "end_line": 65,
+      "submitted_by": "bughunt_finder_1",
+      "status": "confirmed",
+      "confirmations": 2,
+      "refutations": 0,
+      "verifications": [
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. Lines 60 and 65 use different regexes: line 60 uses `/\\s+/g` (whitespace only) while line 65 uses `/[\\s/]+/g` (whitespace and slashes). For \"Axon / TASER\", the outer div gets `work-item-axon-/-taser` (literal slash) while the button gets `work-toggle-axon-taser` (slash normalized). This is an inconsistency where the same normalization logic should be used. The literal slash in the test ID is problematic for CSS selectors.",
+          "agent_id": "bughunt_verifier_0",
+          "timestamp": 1774965066.93213
+        },
+        {
+          "verdict": "CONFIRMED",
+          "reasoning": "Confirmed. Line 60 uses `/\\s+/g` (whitespace only) while line 65 uses `/[\\s/]+/g` (whitespace and slashes). For \"Axon / TASER\", the outer div gets `work-item-axon-/-taser` (with literal slash) while the button gets `work-toggle-axon-taser` (slash normalized). This is an inconsistency that produces a problematic test ID with a literal forward slash character, making CSS selector-based queries unreliable.",
+          "agent_id": "bughunt_verifier_1",
+          "timestamp": 1774965172.1163762
+        }
+      ],
+      "verified_by": [
+        "bughunt_verifier_0",
+        "bughunt_verifier_1"
+      ],
+      "inflight_count": 0,
+      "created_at": 1774964587.435723
+    }
+  },
+  "stats": {
+    "total": 8,
+    "pending": 0,
+    "verifying": 0,
+    "confirmed": 6,
+    "refuted": 2
+  }
+}
