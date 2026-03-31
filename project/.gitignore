@@ -1,0 +1,6 @@
+
+# Generated images
+*.png
+
+.npmrc
+node_modules/

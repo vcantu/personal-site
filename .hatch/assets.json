@@ -1,0 +1,29 @@
+{
+  "packages": [
+    {
+      "name": "lucide-react",
+      "install": "bun add lucide-react",
+      "license": "ISC",
+      "attribution_required": false,
+      "attribution_text": "Icons by Lucide (lucide.dev)",
+      "suggested_use": "All UI icons — social links (GitHub, Linkedin, Twitter, Mail), navigation, accordion chevrons, external-link indicators"
+    }
+  ],
+  "assets": [
+    {
+      "name": "Google Fonts — Space Grotesk",
+      "url": "https://fonts.google.com/specimen/Space+Grotesk",
+      "download_url": null,
+      "license": "OFL-1.1",
+      "attribution_required": true,
+      "attribution_text": "Space Grotesk by Florian Karsten, licensed under the SIL Open Font License 1.1 (https://scripts.sil.org/OFL)",
+      "asset_type": "font",
+      "file_format": "CSS @import",
+      "suggested_use": "Headings and display text — hero greeting, section titles, card titles. Body uses system font stack.",
+      "license_verified_at": "https://fonts.google.com/specimen/Space+Grotesk/about",
+      "downloaded": false,
+      "local_path": "@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap')"
+    }
+  ],
+  "notes": "Consumer-facing personal portfolio/blog with a brutalist aesthetic. The spec explicitly prohibits stock photos, hero illustrations, gradients, and rounded blobs — emojis are the visual system. Scouted only what the spec calls for: Lucide for UI/social icons (GitHub, LinkedIn, X, Mail, chevrons) and Space Grotesk from Google Fonts for headings. No illustrations or photos downloaded — the spec's 'No stock photos. No hero illustrations.' directive means zero image assets are appropriate."
+}

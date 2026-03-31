@@ -1,0 +1,19 @@
+{
+  "name": "hatch-project",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "e2e"
+  ],
+  "scripts": {
+    "dev": "bun --filter './frontend' --filter './backend' dev",
+    "build": "bun --filter './frontend' --filter './backend' build",
+    "lint": "bun --filter './frontend' lint",
+    "typecheck": "bun --filter './frontend' typecheck",
+    "check": "bun --filter './frontend' check",
+    "test:e2e": "bun --filter './e2e' test"
+  },
+  "packageManager": "bun@1.3.10"
+}

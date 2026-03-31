@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+node_modules.host-bak/
+
+# Build output
+dist/
+
+# Database (PGlite local storage)
+pglite/
+*.db
+*.sqlite
+
+# Environment
+.env
+.env.local
+
+# Migrations output
+drizzle/
+
+# Claude Code checkpoints
+.claude/
+
+# OS
+.DS_Store
