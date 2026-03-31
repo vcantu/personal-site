@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface ProjectItem {
@@ -42,59 +43,72 @@ export function ProjectsAccordion() {
 
   return (
     <div className="space-y-3">
-      {PROJECTS.map((project, index) => (
-        <div
-          key={project.name}
-          className={cn(
-            'border-[3px] border-ink bg-cream transition-all duration-200',
-            'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]',
-            openIndex === index && 'shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] translate-x-[2px] translate-y-[2px]'
-          )}
-          data-testid={`project-item-${project.name.replace(/\./g, '-')}`}
-        >
-          <button
-            onClick={() => setOpenIndex(openIndex === index ? null : index)}
-            className="w-full text-left px-4 sm:px-5 py-4 flex items-center justify-between gap-3 cursor-pointer"
-            data-testid={`project-toggle-${project.name.replace(/\./g, '-')}`}
+      {PROJECTS.map((project, index) => {
+        const isOpen = openIndex === index;
+        return (
+          <motion.div
+            key={project.name}
+            className={cn(
+              'border-[3px] border-ink bg-cream transition-shadow duration-200',
+              'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]',
+              isOpen && 'shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'
+            )}
+            animate={{
+              x: isOpen ? 2 : 0,
+              y: isOpen ? 2 : 0,
+            }}
+            transition={{ duration: 0.2 }}
+            data-testid={`project-item-${project.name.replace(/\./g, '-')}`}
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-2xl flex-shrink-0">{project.emoji}</span>
-              <div className="min-w-0">
-                <div className="font-display font-bold text-lg leading-tight flex items-center gap-2 flex-wrap">
-                  {project.name}
-                  <StatusBadge status={project.status} />
+            <button
+              onClick={() => setOpenIndex(isOpen ? null : index)}
+              className="w-full text-left px-4 sm:px-5 py-4 flex items-center justify-between gap-3 cursor-pointer"
+              data-testid={`project-toggle-${project.name.replace(/\./g, '-')}`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-2xl flex-shrink-0">{project.emoji}</span>
+                <div className="min-w-0">
+                  <div className="font-display font-bold text-lg leading-tight flex items-center gap-2 flex-wrap">
+                    {project.name}
+                    <StatusBadge status={project.status} />
+                  </div>
                 </div>
               </div>
-            </div>
-            <ChevronDown
-              className={cn(
-                'w-5 h-5 flex-shrink-0 transition-transform duration-200',
-                openIndex === index && 'rotate-180'
-              )}
-            />
-          </button>
-
-          <div
-            className={cn(
-              'overflow-hidden transition-all duration-300 ease-in-out',
-              openIndex === index ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
-            )}
-          >
-            <div className="px-4 sm:px-5 pb-5 border-t-2 border-ink/10 pt-4">
-              <p className="text-sm leading-relaxed mb-4">{project.description}</p>
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 font-display font-medium text-sm text-ink hover:text-yellow transition-colors underline decoration-2 underline-offset-4"
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
               >
-                Visit {project.name}
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      ))}
+                <ChevronDown className="w-5 h-5 flex-shrink-0" />
+              </motion.div>
+            </button>
+
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 sm:px-5 pb-5 border-t-2 border-ink/10 pt-4">
+                    <p className="text-sm leading-relaxed mb-4">{project.description}</p>
+                    <a
+                      href={project.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 font-display font-medium text-sm text-ink hover:text-yellow transition-colors underline decoration-2 underline-offset-4"
+                    >
+                      Visit {project.name}
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }

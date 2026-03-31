@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface WorkItem {
@@ -49,80 +50,93 @@ export function WorkAccordion() {
 
   return (
     <div className="space-y-3">
-      {WORK_ITEMS.map((item, index) => (
-        <div
-          key={item.company}
-          className={cn(
-            'border-[3px] border-ink bg-cream transition-all duration-200',
-            'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]',
-            openIndex === index && 'shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] translate-x-[2px] translate-y-[2px]'
-          )}
-          data-testid={`work-item-${item.company.toLowerCase().replace(/\s+/g, '-')}`}
-        >
-          <button
-            onClick={() => setOpenIndex(openIndex === index ? null : index)}
-            className="w-full text-left px-4 sm:px-5 py-4 flex items-center justify-between gap-3 cursor-pointer"
-            data-testid={`work-toggle-${item.company.toLowerCase().replace(/[\s/]+/g, '-')}`}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-2xl flex-shrink-0">{item.emoji}</span>
-              <div className="min-w-0">
-                <div className="font-display font-bold text-lg leading-tight">
-                  {item.company}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {item.role} · {item.period}
-                </div>
-              </div>
-            </div>
-            <ChevronDown
-              className={cn(
-                'w-5 h-5 flex-shrink-0 transition-transform duration-200',
-                openIndex === index && 'rotate-180'
-              )}
-            />
-          </button>
-
-          <div
+      {WORK_ITEMS.map((item, index) => {
+        const isOpen = openIndex === index;
+        return (
+          <motion.div
+            key={item.company}
             className={cn(
-              'overflow-hidden transition-all duration-300 ease-in-out',
-              openIndex === index ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+              'border-[3px] border-ink bg-cream transition-shadow duration-200',
+              'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]',
+              isOpen && 'shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'
             )}
+            animate={{
+              x: isOpen ? 2 : 0,
+              y: isOpen ? 2 : 0,
+            }}
+            transition={{ duration: 0.2 }}
+            data-testid={`work-item-${item.company.toLowerCase().replace(/\s+/g, '-')}`}
           >
-            <div className="px-4 sm:px-5 pb-5 border-t-2 border-ink/10 pt-4">
-              <div className="space-y-3">
-                <div>
-                  <span className="font-display font-bold text-sm uppercase tracking-wide text-muted-foreground">They:</span>
-                  <p className="mt-1 text-sm leading-relaxed">{item.theyDo}</p>
-                </div>
-                <div>
-                  <span className="font-display font-bold text-sm uppercase tracking-wide text-muted-foreground">I:</span>
-                  <p className="mt-1 text-sm leading-relaxed">{item.iDid}</p>
-                </div>
-
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {item.stack.map((tech) => (
-                    <span
-                      key={tech}
-                      className="inline-block px-2 py-0.5 text-xs font-display font-medium border-2 border-ink bg-stone"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-
-                {item.previousTitles && (
-                  <div className="pt-2 border-t border-ink/10">
-                    <p className="text-xs text-muted-foreground italic">
-                      Previously: {item.previousTitles.join(' → ')}
-                    </p>
+            <button
+              onClick={() => setOpenIndex(isOpen ? null : index)}
+              className="w-full text-left px-4 sm:px-5 py-4 flex items-center justify-between gap-3 cursor-pointer"
+              data-testid={`work-toggle-${item.company.toLowerCase().replace(/[\s/]+/g, '-')}`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-2xl flex-shrink-0">{item.emoji}</span>
+                <div className="min-w-0">
+                  <div className="font-display font-bold text-lg leading-tight">
+                    {item.company}
                   </div>
-                )}
+                  <div className="text-sm text-muted-foreground">
+                    {item.role} · {item.period}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      ))}
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className="w-5 h-5 flex-shrink-0" />
+              </motion.div>
+            </button>
+
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 sm:px-5 pb-5 border-t-2 border-ink/10 pt-4">
+                    <div className="space-y-3">
+                      <div>
+                        <span className="font-display font-bold text-sm uppercase tracking-wide text-muted-foreground">They:</span>
+                        <p className="mt-1 text-sm leading-relaxed">{item.theyDo}</p>
+                      </div>
+                      <div>
+                        <span className="font-display font-bold text-sm uppercase tracking-wide text-muted-foreground">I:</span>
+                        <p className="mt-1 text-sm leading-relaxed">{item.iDid}</p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {item.stack.map((tech) => (
+                          <span
+                            key={tech}
+                            className="inline-block px-2 py-0.5 text-xs font-display font-medium border-2 border-ink bg-stone"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+
+                      {item.previousTitles && (
+                        <div className="pt-2 border-t border-ink/10">
+                          <p className="text-xs text-muted-foreground italic">
+                            Previously: {item.previousTitles.join(' → ')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }

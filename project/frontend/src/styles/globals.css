@@ -140,3 +140,38 @@ html {
   line-height: 1.75;
   color: var(--ink);
 }
+
+/* Striped decorative accent */
+.stripe-accent {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    var(--yellow) 4px,
+    var(--yellow) 8px
+  );
+}
+
+/* Custom focus visible */
+:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+/* Smooth link underline animation */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--yellow);
+  transition: width 0.2s ease;
+}
+.link-underline:hover::after {
+  width: 100%;
+}
