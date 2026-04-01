@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { SectionTitle } from '@/components/SectionTitle';
 import { WorkAccordion } from '@/components/WorkAccordion';
 import { ProjectsAccordion } from '@/components/ProjectsAccordion';
+import { ResumeHighlights } from '@/components/ResumeHighlights';
 import { WritingPreview } from '@/components/WritingPreview';
 
 const fadeUp = {
@@ -48,7 +49,7 @@ export function HomePage() {
           variants={fadeUp}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          I build AI systems by day and ship side projects by night. Based in Boston. Obsessed with the gap between human intent and computer execution.
+          I build AI systems by day and ship side projects by night. 10+ years in software—from robotics to health tech to public data. Based in Boston. Obsessed with the gap between human intent and computer execution.
         </motion.p>
         <motion.div
           variants={fadeUp}
@@ -85,6 +86,17 @@ export function HomePage() {
       >
         <SectionTitle emoji="🚀" title="Projects" id="projects" />
         <ProjectsAccordion />
+      </motion.section>
+
+      {/* Resume Highlights */}
+      <motion.section
+        className="py-8 sm:py-12"
+        data-testid="resume-section"
+        variants={fadeUp}
+        transition={{ duration: 0.5 }}
+      >
+        <SectionTitle emoji="📋" title="Core Strengths" id="resume" />
+        <ResumeHighlights />
       </motion.section>
 
       {/* Writing */}

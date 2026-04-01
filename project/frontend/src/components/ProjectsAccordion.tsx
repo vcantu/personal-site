@@ -36,6 +36,14 @@ const PROJECTS: ProjectItem[] = [
     description:
       'Turn-based strategy game at the intersection of football and chess. Each play is a move. Read the defense, call your formation, outsmart your opponent. Phase 1 shipped.',
   },
+  {
+    emoji: '📊',
+    name: 'vibe-stats',
+    url: 'https://github.com/vcantu/vibe-stats',
+    status: 'live',
+    description:
+      'CLI tool that analyzes your Claude Code session history and gives you developer productivity stats. See how much time you spend coding, debugging, shipping. Built for AI-assisted development.',
+  },
 ];
 
 export function ProjectsAccordion() {
